@@ -1,0 +1,22 @@
+[
+  {
+    "name": "FEDIAF Nutritional Guidelines 2025",
+    "note": "参考資料として記載。準拠、公式、認定とは表現しない。"
+  },
+  {
+    "name": "WSAVA Global Nutrition Guidelines / Global Nutrition Toolkit",
+    "note": "参考資料として記載。本文、図表、ロゴは転載しない。"
+  },
+  {
+    "name": "日本食品標準成分表",
+    "note": "食材成分の正式データ確認先候補。"
+  },
+  {
+    "name": "USDA FoodData Central",
+    "note": "食材成分の正式データ確認先候補。"
+  },
+  {
+    "name": "MSD Veterinary Manual",
+    "note": "一般的な獣医学情報の参考資料。"
+  }
+]
