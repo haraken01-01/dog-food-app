@@ -41,7 +41,7 @@ const initialMainFood: MainFoodInput = {
 const initialIngredients: IngredientInputType[] = [
   {
     id: "initial-sasami",
-    foodName: "鶏ささみ ゆで",
+    foodName: "鶏ささみ",
     matchedFoodId: "chicken_sasami_boiled",
     state: "boiled",
     grams: 10,
@@ -154,7 +154,7 @@ function buildValidationWarnings(profile: DogProfile, mainFoods: MainFoodInput[]
     });
   }
 
-  if (profile.mealsPerDay < 1 || mainFoods.some((mainFood) => mainFood.mealsPerDay < 1)) {
+  if (!Number.isFinite(profile.mealsPerDay) || profile.mealsPerDay < 1 || mainFoods.some((mainFood) => !Number.isFinite(mainFood.mealsPerDay) || mainFood.mealsPerDay < 1)) {
     warnings.push({
       id: "meals-range",
       severity: "danger",
@@ -164,7 +164,7 @@ function buildValidationWarnings(profile: DogProfile, mainFoods: MainFoodInput[]
   }
 
   mainFoods.forEach((mainFood, index) => {
-    if (mainFood.kcalPer100g <= 0 || mainFood.gramsPerMeal <= 0) {
+    if (!Number.isFinite(mainFood.kcalPer100g) || mainFood.kcalPer100g <= 0 || !Number.isFinite(mainFood.gramsPerMeal) || mainFood.gramsPerMeal <= 0) {
       warnings.push({
         id: `main-food-range-${mainFood.id}`,
         severity: "danger",
@@ -202,7 +202,7 @@ function buildValidationWarnings(profile: DogProfile, mainFoods: MainFoodInput[]
   }
 
   ingredients.forEach((ingredient, index) => {
-    if (!ingredient.foodName.trim() || ingredient.grams <= 0) {
+    if (!ingredient.foodName.trim() || !Number.isFinite(ingredient.grams) || ingredient.grams <= 0) {
       warnings.push({
         id: `ingredient-range-${ingredient.id}`,
         severity: "danger",

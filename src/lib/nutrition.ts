@@ -4,6 +4,10 @@ import { emptyNutrients, type Nutrients } from "@/types/nutrition";
 const nutrientKeys = Object.keys(emptyNutrients) as Array<keyof Nutrients>;
 
 export function multiplyNutrients(per100g: Nutrients, grams: number): Nutrients {
+  if (!Number.isFinite(grams) || grams <= 0) {
+    return { ...emptyNutrients };
+  }
+
   return nutrientKeys.reduce((acc, key) => {
     acc[key] = (per100g[key] * grams) / 100;
     return acc;

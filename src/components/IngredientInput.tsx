@@ -1,5 +1,5 @@
 import type { FoodNutrient, FoodState, IngredientInput as IngredientInputType, IngredientUsage } from "@/types/food";
-import { FormField, inputClass } from "./FormField";
+import { FormField, inputClass, NumericInput } from "./FormField";
 
 type IngredientInputProps = {
   foods: FoodNutrient[];
@@ -8,11 +8,26 @@ type IngredientInputProps = {
 };
 
 export function IngredientInput({ foods, ingredients, onChange }: IngredientInputProps) {
+  const foodOptionNames = Array.from(new Set(foods.map((food) => displayFoodName(food.nameJa))));
+
   function findFoodByName(value: string) {
     const normalized = value.trim().toLocaleLowerCase("ja-JP").replace(/\s+/g, "");
 
     return foods.find((food) => {
-      const names = [food.nameJa, ...food.aliases].map((name) => name.trim().toLocaleLowerCase("ja-JP").replace(/\s+/g, ""));
+      const names = [food.nameJa, displayFoodName(food.nameJa), ...food.aliases].map((name) => name.trim().toLocaleLowerCase("ja-JP").replace(/\s+/g, ""));
+      return names.some((name) => name === normalized);
+    });
+  }
+
+  function findFoodForState(current: IngredientInputType, state: FoodState) {
+    const normalized = current.foodName.trim().toLocaleLowerCase("ja-JP").replace(/\s+/g, "");
+
+    return foods.find((food) => {
+      if (food.state !== state) {
+        return false;
+      }
+
+      const names = [food.nameJa, displayFoodName(food.nameJa), ...food.aliases].map((name) => name.trim().toLocaleLowerCase("ja-JP").replace(/\s+/g, ""));
       return names.some((name) => name === normalized);
     });
   }
@@ -27,7 +42,7 @@ export function IngredientInput({ foods, ingredients, onChange }: IngredientInpu
       ...ingredients,
       {
         id: crypto.randomUUID(),
-        foodName: firstFood?.nameJa ?? "",
+        foodName: firstFood ? displayFoodName(firstFood.nameJa) : "",
         matchedFoodId: firstFood?.id ?? "",
         state: firstFood?.state ?? "boiled",
         grams: 10,
@@ -85,13 +100,24 @@ export function IngredientInput({ foods, ingredients, onChange }: IngredientInpu
                   }}
                 />
                 <datalist id={`food-options-${ingredient.id}`}>
-                  {foods.map((food) => (
-                    <option key={food.id} value={food.nameJa} />
+                  {foodOptionNames.map((foodName) => (
+                    <option key={foodName} value={foodName} />
                   ))}
                 </datalist>
               </FormField>
-              <FormField label="調理方法" hint="MVPでは記録用">
-                <select className={inputClass} value={ingredient.state} onChange={(event) => updateIngredient(ingredient.id, { state: event.target.value as FoodState })}>
+              <FormField label="調理方法" hint="データがあれば反映">
+                <select
+                  className={inputClass}
+                  value={ingredient.state}
+                  onChange={(event) => {
+                    const state = event.target.value as FoodState;
+                    const food = findFoodForState(ingredient, state);
+                    updateIngredient(ingredient.id, {
+                      state,
+                      matchedFoodId: food?.id ?? ingredient.matchedFoodId
+                    });
+                  }}
+                >
                   <option value="boiled">ゆで</option>
                   <option value="steamed">蒸し</option>
                   <option value="grilled">焼き</option>
@@ -99,13 +125,11 @@ export function IngredientInput({ foods, ingredients, onChange }: IngredientInpu
                 </select>
               </FormField>
               <FormField label="量 g">
-                <input
-                  className={inputClass}
+                <NumericInput
                   min={0}
                   step={1}
-                  type="number"
                   value={ingredient.grams}
-                  onChange={(event) => updateIngredient(ingredient.id, { grams: Number(event.target.value) })}
+                  onChange={(grams) => updateIngredient(ingredient.id, { grams })}
                 />
               </FormField>
               <FormField label="用途" hint="10%判定に影響">
@@ -117,11 +141,15 @@ export function IngredientInput({ foods, ingredients, onChange }: IngredientInpu
               </FormField>
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-600">
-              調理方法によって栄養値は変わりますが、現在のMVPでは候補食材に登録された成分値を使います。犬向けには安全のため、基本は加熱した食材を想定しています。
+              調理方法によって栄養値は変わります。同じ食材の調理法別データが登録されている場合は切り替え、未登録の場合は現在選ばれている候補食材の成分値を使います。犬向けには安全のため、基本は加熱した食材を想定しています。
             </p>
           </div>
         ))}
       </div>
     </section>
   );
+}
+
+function displayFoodName(name: string): string {
+  return name.replace(/\s+(ゆで|焼き|蒸し|炊飯)$/, "");
 }

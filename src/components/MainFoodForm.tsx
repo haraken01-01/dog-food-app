@@ -1,5 +1,5 @@
 import type { MainFoodInput, MainFoodType } from "@/types/food";
-import { FormField, inputClass } from "./FormField";
+import { FormField, inputClass, NumericInput } from "./FormField";
 
 type MainFoodFormProps = {
   value: MainFoodInput[];
@@ -64,33 +64,27 @@ export function MainFoodForm({ value, onChange }: MainFoodFormProps) {
                 <input className={inputClass} value={food.productName} onChange={(event) => updateFood(food.id, { productName: event.target.value })} />
               </FormField>
               <FormField label="100gあたりkcal">
-                <input
-                  className={inputClass}
+                <NumericInput
                   min={1}
                   step={1}
-                  type="number"
                   value={food.kcalPer100g}
-                  onChange={(event) => updateFood(food.id, { kcalPer100g: Number(event.target.value) })}
+                  onChange={(kcalPer100g) => updateFood(food.id, { kcalPer100g })}
                 />
               </FormField>
               <FormField label="1食あたりg">
-                <input
-                  className={inputClass}
+                <NumericInput
                   min={1}
                   step={1}
-                  type="number"
                   value={food.gramsPerMeal}
-                  onChange={(event) => updateFood(food.id, { gramsPerMeal: Number(event.target.value) })}
+                  onChange={(gramsPerMeal) => updateFood(food.id, { gramsPerMeal })}
                 />
               </FormField>
               <FormField label="1日何食">
-                <input
-                  className={inputClass}
+                <NumericInput
                   min={1}
                   step={1}
-                  type="number"
                   value={food.mealsPerDay}
-                  onChange={(event) => updateFood(food.id, { mealsPerDay: Number(event.target.value) })}
+                  onChange={(mealsPerDay) => updateFood(food.id, { mealsPerDay })}
                 />
               </FormField>
             </div>

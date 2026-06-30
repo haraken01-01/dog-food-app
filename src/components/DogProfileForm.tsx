@@ -1,7 +1,7 @@
 import type { AgeGroup, DogProfile, MedicalStatus } from "@/types/dog";
 import { ActivitySelector } from "./ActivitySelector";
 import { BodyConditionSelector } from "./BodyConditionSelector";
-import { FormField, inputClass } from "./FormField";
+import { FormField, inputClass, NumericInput } from "./FormField";
 
 type DogProfileFormProps = {
   value: DogProfile;
@@ -9,24 +9,17 @@ type DogProfileFormProps = {
 };
 
 export function DogProfileForm({ value, onChange }: DogProfileFormProps) {
-  const weightValue = Number.isFinite(value.weightKg) && value.weightKg > 0 ? String(value.weightKg) : "";
-
   return (
     <section className="rounded-lg border border-leaf/20 bg-white p-5 shadow-sm">
       <h2 className="text-xl font-bold text-ink">犬情報</h2>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <FormField label="体重" hint="0.5〜100kg">
-          <input
-            className={inputClass}
+          <NumericInput
             min={0.5}
             max={100}
             step={0.1}
-            type="number"
-            value={weightValue}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              onChange({ ...value, weightKg: nextValue === "" ? Number.NaN : Number(nextValue) });
-            }}
+            value={value.weightKg}
+            onChange={(weightKg) => onChange({ ...value, weightKg })}
           />
         </FormField>
         <FormField label="年齢">
@@ -54,13 +47,11 @@ export function DogProfileForm({ value, onChange }: DogProfileFormProps) {
           </div>
         </FormField>
         <FormField label="1日の食事回数">
-          <input
-            className={inputClass}
+          <NumericInput
             min={1}
             step={1}
-            type="number"
             value={value.mealsPerDay}
-            onChange={(event) => onChange({ ...value, mealsPerDay: Number(event.target.value) })}
+            onChange={(mealsPerDay) => onChange({ ...value, mealsPerDay })}
           />
         </FormField>
         <ActivitySelector value={value.activityLevel} onChange={(activityLevel) => onChange({ ...value, activityLevel })} />

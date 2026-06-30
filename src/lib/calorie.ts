@@ -43,14 +43,17 @@ export function calorieRange(estimatedCalories: number) {
 }
 
 export function calculateMainFoodCalories(mainFood: MainFoodInput) {
-  const perMeal = (mainFood.kcalPer100g * mainFood.gramsPerMeal) / 100;
+  const kcalPer100g = Number.isFinite(mainFood.kcalPer100g) && mainFood.kcalPer100g > 0 ? mainFood.kcalPer100g : 0;
+  const gramsPerMeal = Number.isFinite(mainFood.gramsPerMeal) && mainFood.gramsPerMeal > 0 ? mainFood.gramsPerMeal : 0;
+  const mealsPerDay = Number.isFinite(mainFood.mealsPerDay) && mainFood.mealsPerDay > 0 ? mainFood.mealsPerDay : 0;
+  const perMeal = (kcalPer100g * gramsPerMeal) / 100;
   return {
     id: mainFood.id,
     productName: mainFood.productName,
     foodType: mainFood.foodType,
-    gramsPerDay: mainFood.gramsPerMeal * mainFood.mealsPerDay,
+    gramsPerDay: gramsPerMeal * mealsPerDay,
     perMeal,
-    perDay: perMeal * mainFood.mealsPerDay
+    perDay: perMeal * mealsPerDay
   };
 }
 
