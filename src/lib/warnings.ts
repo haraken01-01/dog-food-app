@@ -71,7 +71,8 @@ export function buildWarnings(params: {
     });
   }
 
-  const byCategory = caloriesByCategory(params.ingredientNutrition);
+  const toppingLikeIngredientNutrition = params.ingredientNutrition.filter((item) => item.input.usage === "topping" || item.input.usage === "snack");
+  const byCategory = caloriesByCategory(toppingLikeIngredientNutrition);
   const totalIngredientKcal = Math.max(params.toppingCalories, 0);
   const meatFishEggKcal = sumCategories(byCategory, ["meat", "fish", "egg"]);
   const caPRatio = calculateCaPRatio(sumNutrients(params.ingredientNutrition.map((item) => item.nutrients)));
@@ -105,8 +106,8 @@ export function buildWarnings(params: {
     });
   }
 
-  const totalWeight = params.ingredientNutrition.reduce((sum, item) => sum + item.input.grams, 0);
-  const vegetableWeight = params.ingredientNutrition
+  const totalWeight = toppingLikeIngredientNutrition.reduce((sum, item) => sum + item.input.grams, 0);
+  const vegetableWeight = toppingLikeIngredientNutrition
     .filter((item) => item.food?.category === "vegetable")
     .reduce((sum, item) => sum + item.input.grams, 0);
   if (totalWeight > 0 && vegetableWeight / totalWeight >= 0.7) {

@@ -7,7 +7,7 @@ import { DogProfileForm } from "@/components/DogProfileForm";
 import { IngredientInput } from "@/components/IngredientInput";
 import { MainFoodForm } from "@/components/MainFoodForm";
 import { ResultSummary } from "@/components/ResultSummary";
-import { calculateMainFoodCalories, calorieRange, estimateDailyCalories } from "@/lib/calorie";
+import { calculateMainFoodsCalories, calorieRange, estimateDailyCalories } from "@/lib/calorie";
 import { findDangerousFoodMatches } from "@/lib/dangerousFoods";
 import { addNutrients, calculateIngredientNutrition } from "@/lib/nutrition";
 import { buildWarnings, type AppWarning } from "@/lib/warnings";
@@ -30,6 +30,7 @@ const initialProfile: DogProfile = {
 };
 
 const initialMainFood: MainFoodInput = {
+  id: "initial-dry-food",
   foodType: "completeDry",
   productName: "",
   kcalPer100g: 350,
@@ -50,15 +51,19 @@ const initialIngredients: IngredientInputType[] = [
 
 export default function CalculatorPage() {
   const [profile, setProfile] = useState<DogProfile>(initialProfile);
-  const [mainFood, setMainFood] = useState<MainFoodInput>(initialMainFood);
+  const [mainFoods, setMainFoods] = useState<MainFoodInput[]>([initialMainFood]);
   const [ingredients, setIngredients] = useState<IngredientInputType[]>(initialIngredients);
 
   const result = useMemo(() => {
     const estimatedCalories = estimateDailyCalories(profile);
     const range = calorieRange(estimatedCalories);
-    const mainFoodCalories = calculateMainFoodCalories(mainFood);
+    const mainFoodCalories = calculateMainFoodsCalories(mainFoods);
     const ingredientNutrition = ingredients.map((ingredient) => calculateIngredientNutrition(ingredient, foods));
-    const toppingNutrients = addNutrients(ingredientNutrition.map((item) => item.nutrients));
+    const allIngredientNutrients = addNutrients(ingredientNutrition.map((item) => item.nutrients));
+    const toppingNutrients = addNutrients(
+      ingredientNutrition.filter((item) => item.input.usage === "topping" || item.input.usage === "snack").map((item) => item.nutrients)
+    );
+    const ingredientCalories = allIngredientNutrients.kcal;
     const toppingCalories = toppingNutrients.kcal;
     const dangerousMatches = findDangerousFoodMatches(ingredients, dangerousFoods);
     const warnings = [
@@ -69,7 +74,7 @@ export default function CalculatorPage() {
         ingredientNutrition,
         dangerousMatches
       }),
-      ...buildValidationWarnings(profile, mainFood, ingredients)
+      ...buildValidationWarnings(profile, mainFoods, ingredients)
     ];
 
     return {
@@ -77,12 +82,13 @@ export default function CalculatorPage() {
       range,
       mainFoodCalories,
       ingredientNutrition,
-      toppingNutrients,
+      allIngredientNutrients,
       toppingCalories,
-      totalCalories: mainFoodCalories.perDay + toppingCalories,
+      ingredientCalories,
+      totalCalories: mainFoodCalories.perDay + ingredientCalories,
       warnings
     };
-  }, [profile, mainFood, ingredients]);
+  }, [profile, mainFoods, ingredients]);
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-8">
@@ -106,9 +112,9 @@ export default function CalculatorPage() {
           <div className="space-y-5">
             <DogProfileForm value={profile} onChange={(nextProfile) => {
               setProfile(nextProfile);
-              setMainFood((current) => ({ ...current, mealsPerDay: nextProfile.mealsPerDay }));
+              setMainFoods((current) => current.map((food) => ({ ...food, mealsPerDay: nextProfile.mealsPerDay })));
             }} />
-            <MainFoodForm value={mainFood} onChange={setMainFood} />
+            <MainFoodForm value={mainFoods} onChange={setMainFoods} />
             <IngredientInput foods={foods} ingredients={ingredients} onChange={setIngredients} />
             <BodyConditionGuide />
           </div>
@@ -119,9 +125,10 @@ export default function CalculatorPage() {
               range={result.range}
               mealsPerDay={profile.mealsPerDay}
               mainFood={result.mainFoodCalories}
+              ingredientCalories={result.ingredientCalories}
               toppingCalories={result.toppingCalories}
               totalCalories={result.totalCalories}
-              nutrients={result.toppingNutrients}
+              nutrients={result.allIngredientNutrients}
               warnings={result.warnings}
             />
             <section className="rounded-lg border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-700 shadow-sm">
@@ -135,7 +142,7 @@ export default function CalculatorPage() {
   );
 }
 
-function buildValidationWarnings(profile: DogProfile, mainFood: MainFoodInput, ingredients: IngredientInputType[]): AppWarning[] {
+function buildValidationWarnings(profile: DogProfile, mainFoods: MainFoodInput[], ingredients: IngredientInputType[]): AppWarning[] {
   const warnings: AppWarning[] = [];
 
   if (profile.weightKg < 0.5 || profile.weightKg > 100) {
@@ -147,7 +154,7 @@ function buildValidationWarnings(profile: DogProfile, mainFood: MainFoodInput, i
     });
   }
 
-  if (profile.mealsPerDay < 1 || mainFood.mealsPerDay < 1) {
+  if (profile.mealsPerDay < 1 || mainFoods.some((mainFood) => mainFood.mealsPerDay < 1)) {
     warnings.push({
       id: "meals-range",
       severity: "danger",
@@ -156,12 +163,41 @@ function buildValidationWarnings(profile: DogProfile, mainFood: MainFoodInput, i
     });
   }
 
-  if (mainFood.kcalPer100g <= 0 || mainFood.gramsPerMeal <= 0) {
+  mainFoods.forEach((mainFood, index) => {
+    if (mainFood.kcalPer100g <= 0 || mainFood.gramsPerMeal <= 0) {
+      warnings.push({
+        id: `main-food-range-${mainFood.id}`,
+        severity: "danger",
+        title: `主食${index + 1}の入力を確認してください`,
+        message: "100gあたりkcalと1食あたりgは0より大きい値を入力してください。"
+      });
+    }
+
+    if (mainFood.foodType === "sideDish") {
+      warnings.push({
+        id: `main-food-side-dish-${mainFood.id}`,
+        severity: "warning",
+        title: `主食${index + 1}は総合栄養食ではない補助食です`,
+        message: "一般食・副食は、それだけで栄養が完結しないことがあります。総合栄養食を主食にしているか確認してください。"
+      });
+    }
+
+    if (mainFood.foodType === "homemadeMain") {
+      warnings.push({
+        id: `main-food-homemade-${mainFood.id}`,
+        severity: "warning",
+        title: `主食${index + 1}が手作り食中心です`,
+        message: "このMVPは完全手作り食の栄養バランスを保証しません。長期継続する場合は獣医師または獣医栄養学の専門家に相談してください。"
+      });
+    }
+  });
+
+  if (mainFoods.length === 0) {
     warnings.push({
-      id: "main-food-range",
+      id: "main-food-missing",
       severity: "danger",
-      title: "主食フードの入力を確認してください",
-      message: "100gあたりkcalと1食あたりgは0より大きい値を入力してください。"
+      title: "主食フードを入力してください",
+      message: "総カロリーを計算するため、少なくとも1つの主食フードを入力してください。"
     });
   }
 

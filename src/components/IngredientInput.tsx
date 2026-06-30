@@ -34,7 +34,10 @@ export function IngredientInput({ foods, ingredients, onChange }: IngredientInpu
   return (
     <section className="rounded-lg border border-leaf/20 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-ink">手作り食材・トッピング</h2>
+        <div>
+          <h2 className="text-xl font-bold text-ink">手作り食材・トッピング</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-600">用途が「トッピング」「おやつ」のものだけを10%目安の判定に使います。「主食の一部」は総カロリーには入りますが、トッピング過多判定からは外します。</p>
+        </div>
         <button className="focus-ring rounded-md bg-leaf px-4 py-2 text-sm font-semibold text-white hover:bg-ink" type="button" onClick={addIngredient}>
           追加
         </button>

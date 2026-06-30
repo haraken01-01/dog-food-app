@@ -1,12 +1,13 @@
 import type { Nutrients } from "./nutrition";
 
-export type MainFoodType = "completeDry" | "completeWet" | "sideDish" | "homemadeMain" | "unknown";
+export type MainFoodType = "completeDry" | "completeWet" | "sideDish" | "homemadeMain";
 export type FoodCategory = "meat" | "fish" | "egg" | "rice" | "potato" | "grain" | "vegetable" | "dairy" | "oil" | "other";
 export type FoodState = "raw" | "boiled" | "grilled" | "steamed" | "other";
 export type IngredientUsage = "topping" | "mainPart" | "snack";
 export type RiskLevel = "forbidden" | "caution";
 
 export type MainFoodInput = {
+  id: string;
   foodType: MainFoodType;
   productName: string;
   kcalPer100g: number;
