@@ -19,11 +19,14 @@ export const bodyConditionFactors: Record<BodyCondition, number> = {
 
 export const neuteredFactors: Record<NeuteredStatus, number> = {
   neutered: 0.95,
-  intact: 1,
-  unknown: 1
+  intact: 1
 };
 
 export function estimateDailyCalories(profile: DogProfile): number {
+  if (!Number.isFinite(profile.weightKg) || profile.weightKg <= 0) {
+    return 0;
+  }
+
   return (
     Math.pow(profile.weightKg, 0.75) *
     activityFactors[profile.activityLevel] *
@@ -61,5 +64,9 @@ export function calculateMainFoodsCalories(mainFoods: MainFoodInput[]) {
 }
 
 export function formatKcal(value: number): string {
+  if (!Number.isFinite(value)) {
+    return "- kcal";
+  }
+
   return `${Math.round(value).toLocaleString("ja-JP")} kcal`;
 }

@@ -1,5 +1,5 @@
 export type AgeGroup = "puppy" | "youngAdult" | "adult" | "senior";
-export type NeuteredStatus = "neutered" | "intact" | "unknown";
+export type NeuteredStatus = "neutered" | "intact";
 export type ActivityLevel = "inactive" | "low" | "normal" | "active" | "veryActive";
 export type BodyCondition = "thin" | "slightlyThin" | "ideal" | "slightlyOverweight" | "overweight";
 export type MedicalStatus = "none" | "hasCondition" | "unknown";

@@ -1,4 +1,4 @@
-import type { AgeGroup, DogProfile, MedicalStatus, NeuteredStatus } from "@/types/dog";
+import type { AgeGroup, DogProfile, MedicalStatus } from "@/types/dog";
 import { ActivitySelector } from "./ActivitySelector";
 import { BodyConditionSelector } from "./BodyConditionSelector";
 import { FormField, inputClass } from "./FormField";
@@ -9,6 +9,8 @@ type DogProfileFormProps = {
 };
 
 export function DogProfileForm({ value, onChange }: DogProfileFormProps) {
+  const weightValue = Number.isFinite(value.weightKg) && value.weightKg > 0 ? String(value.weightKg) : "";
+
   return (
     <section className="rounded-lg border border-leaf/20 bg-white p-5 shadow-sm">
       <h2 className="text-xl font-bold text-ink">犬情報</h2>
@@ -20,8 +22,11 @@ export function DogProfileForm({ value, onChange }: DogProfileFormProps) {
             max={100}
             step={0.1}
             type="number"
-            value={value.weightKg}
-            onChange={(event) => onChange({ ...value, weightKg: Number(event.target.value) })}
+            value={weightValue}
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              onChange({ ...value, weightKg: nextValue === "" ? Number.NaN : Number(nextValue) });
+            }}
           />
         </FormField>
         <FormField label="年齢">
@@ -32,16 +37,21 @@ export function DogProfileForm({ value, onChange }: DogProfileFormProps) {
             <option value="senior">7歳以上</option>
           </select>
         </FormField>
-        <FormField label="避妊・去勢">
-          <select
-            className={inputClass}
-            value={value.neuteredStatus}
-            onChange={(event) => onChange({ ...value, neuteredStatus: event.target.value as NeuteredStatus })}
-          >
-            <option value="neutered">済み</option>
-            <option value="intact">未実施</option>
-            <option value="unknown">不明</option>
-          </select>
+        <FormField label="避妊・去勢手術">
+          <div className="rounded-md border border-slate-300 bg-white px-3 py-3 shadow-sm">
+            <label className="flex items-start gap-3 text-sm text-slate-700">
+              <input
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-leaf focus:ring-leaf"
+                checked={value.neuteredStatus === "neutered"}
+                type="checkbox"
+                onChange={(event) => onChange({ ...value, neuteredStatus: event.target.checked ? "neutered" : "intact" })}
+              />
+              <span>
+                避妊・去勢手術を受けている
+                <span className="mt-1 block text-xs leading-5 text-slate-500">チェックがない場合は、カロリー計算上は手術を受けていない前提で扱います。</span>
+              </span>
+            </label>
+          </div>
         </FormField>
         <FormField label="1日の食事回数">
           <input

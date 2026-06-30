@@ -22,7 +22,7 @@ const dangerousFoods = dangerousFoodsJson as DangerousFood[];
 const initialProfile: DogProfile = {
   weightKg: 5,
   ageGroup: "adult",
-  neuteredStatus: "neutered",
+  neuteredStatus: "intact",
   mealsPerDay: 2,
   activityLevel: "normal",
   bodyCondition: "ideal",
@@ -145,7 +145,7 @@ export default function CalculatorPage() {
 function buildValidationWarnings(profile: DogProfile, mainFoods: MainFoodInput[], ingredients: IngredientInputType[]): AppWarning[] {
   const warnings: AppWarning[] = [];
 
-  if (profile.weightKg < 0.5 || profile.weightKg > 100) {
+  if (!Number.isFinite(profile.weightKg) || profile.weightKg < 0.5 || profile.weightKg > 100) {
     warnings.push({
       id: "weight-range",
       severity: "danger",
@@ -207,7 +207,7 @@ function buildValidationWarnings(profile: DogProfile, mainFoods: MainFoodInput[]
         id: `ingredient-range-${ingredient.id}`,
         severity: "danger",
         title: `食材${index + 1}の入力を確認してください`,
-        message: "食材名を入力し、量は0gより大きい値にしてください。"
+        message: "食材を入力し、量は0gより大きい値にしてください。"
       });
     }
   });
